@@ -83,8 +83,6 @@ async def messageMonitorLoop():
                     # Check if newly posted webm was previously archived
                     if isFileNameInList(list_of_webms, file_name) is False:
 
-                        print(guild_id_to_lists_of_webms_dict)
-
                         # Check to see if webm-archive text channel exists
                         # and if not, create it
                         found_text_channel = doesTextChannelExist(guild)
@@ -106,6 +104,10 @@ async def messageMonitorLoop():
 
                         # Upload file to webm archive channel
                         await webm_archive_channel.send(file=discord.File('./' + file_name))
+
+                        # Remove webm that was downloaded
+                        os.remove(os.path.join("./", file_name))
+
 
 
 bot.run(TOKEN)
