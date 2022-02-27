@@ -72,7 +72,13 @@ async def messageMonitorLoop():
                 if ( message is not None) and ("https://i.4cdn.org" in message.content) and (".webm" in message.content):
 
                     # Create url link
-                    url_link = message.content
+                    # TODO: This won't work if a 4chan link is posted with no space
+                    # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
+                    # Could fix this in the future but I don't really care
+                    message_content_array = message.content.split()
+                    for split_message in message_content_array:
+                        if "https://i.4cdn.org" in split_message:
+                            url_link = split_message
 
                     # Get filename to download from url link
                     file_name = message.content.split('/')[-1]
