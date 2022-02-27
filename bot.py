@@ -27,8 +27,13 @@ async def messageMonitorLoop():
     # Loop through guilds to which the bot belongs
     for guild in bot.guilds:
 
-        # TODO: Loop through text channels in guild
-        # Check most recent message for 4chan webm link
-        pass
+        # Loop through text channels in guild
+        for channel in guild.text_channels:
+
+            # Check most recent message for 4chan webm link
+            message = (await channel.fetch_message(channel.last_message_id))
+            if "https://i.4cdn.org" in message.content and ".webm" in message.content:
+                pass
+
 
 bot.run(TOKEN)
