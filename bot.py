@@ -23,9 +23,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # Dictionary of guild ids to list of previously downloaded webms
 guild_id_to_lists_of_webms_dict = {}
 
-@bot.event
-async def on_ready():
-    await messageMonitorLoop.start()
 
 def doesTextChannelExist(guild):
 
@@ -51,69 +48,62 @@ def isFileNameInList(list_of_webms, file_name_to_compare):
 
     return found_file_name
 
-@tasks.loop(seconds=1)
-async def messageMonitorLoop():
 
-    # Loop through guilds to which the bot belongs
-    for guild in bot.guilds:
+@bot.event
+async def on_message(message):
 
-        # Loop through text channels in guild
-        for channel in guild.text_channels:
+    # message content
+    content = message.content
 
-            # Check most recent message for 4chan webm link
-            if channel.last_message_id is not None:
+    # message author
+    user = message.author
 
-                # Try/catch to deal with the most recent message being deleted
-                try:
-                    message = (await channel.fetch_message(channel.last_message_id))
-                except:
-                    message = None
+    # text channel message originated on
+    channel = message.channel
 
-                if ( message is not None) and ("https://i.4cdn.org" in message.content) and (".webm" in message.content):
+    # check if message is a 4chan webm link
+    if ( message is not None) and ("https://i.4cdn.org" in message.content) and (".webm" in message.content):
+        # Create url link
+        # TODO: This won't work if a 4chan link is posted with no space
+        # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
+        # Could fix this in the future but I don't really care
+        message_content_array = message.content.split()
+        for split_message in message_content_array:
+            if "https://i.4cdn.org" in split_message:
+                url_link = split_message
 
-                    # Create url link
-                    # TODO: This won't work if a 4chan link is posted with no space
-                    # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
-                    # Could fix this in the future but I don't really care
-                    message_content_array = message.content.split()
-                    for split_message in message_content_array:
-                        if "https://i.4cdn.org" in split_message:
-                            url_link = split_message
+        # Get filename to download from url link
+        file_name = message.content.split('/')[-1]
 
-                    # Get filename to download from url link
-                    file_name = message.content.split('/')[-1]
+        # List of webms that have already been archived
+        list_of_webms = guild_id_to_lists_of_webms_dict.get(message.guild.id)
 
-                    # List of webms that have already been archived
-                    list_of_webms = guild_id_to_lists_of_webms_dict.get(guild.id)
+        # Check if newly posted webm was previously archived
+        if isFileNameInList(list_of_webms, file_name) is False:
 
-                    # Check if newly posted webm was previously archived
-                    if isFileNameInList(list_of_webms, file_name) is False:
+            # Check to see if webm-archive text channel exists
+            # and if not, create it
+            found_text_channel = doesTextChannelExist(message.guild)
 
-                        # Check to see if webm-archive text channel exists
-                        # and if not, create it
-                        found_text_channel = doesTextChannelExist(guild)
+            if found_text_channel is False:
+                await message.guild.create_text_channel("webm-archive")
 
-                        if found_text_channel is False:
-                            await guild.create_text_channel("webm-archive")
+            # Get archive channel
+            webm_archive_channel = discord.utils.get(message.guild.text_channels, name="webm-archive")
 
-                        # Get archive channel
-                        webm_archive_channel = discord.utils.get(guild.text_channels, name="webm-archive")
+            # Download webm from url
+            urllib.request.urlretrieve(url_link, file_name)
 
-                        # Download webm from url
-                        urllib.request.urlretrieve(url_link, file_name)
+            # Keep track of the file that was downloaded to avoid duplicates
+            if guild_id_to_lists_of_webms_dict.get(message.guild.id) is None:
+                guild_id_to_lists_of_webms_dict[message.guild.id] = [file_name]
+            else:
+                guild_id_to_lists_of_webms_dict[message.guild.id].append(file_name)
 
-                        # Keep track of the file that was downloaded to avoid duplicates
-                        if guild_id_to_lists_of_webms_dict.get(guild.id) is None:
-                            guild_id_to_lists_of_webms_dict[guild.id] = [file_name]
-                        else:
-                            guild_id_to_lists_of_webms_dict[guild.id].append(file_name)
+            # Upload file to webm archive channel
+            await webm_archive_channel.send(file=discord.File('./' + file_name))
 
-                        # Upload file to webm archive channel
-                        await webm_archive_channel.send(file=discord.File('./' + file_name))
-
-                        # Remove webm that was downloaded
-                        os.remove(os.path.join("./", file_name))
-
-
+            # Remove webm that was downloaded
+            os.remove(os.path.join("./", file_name))
 
 bot.run(TOKEN)
