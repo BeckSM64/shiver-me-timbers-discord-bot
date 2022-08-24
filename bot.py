@@ -70,7 +70,7 @@ async def on_message(message):
         # Could fix this in the future but I don't really care
         message_content_array = message.content.split()
         for split_message in message_content_array:
-            if "https://i.4cdn.org" in split_message:
+            if ("https://i.4cdn.org" in split_message) or ("https://is2.4chan.org" in split_message):
                 url_link = split_message
 
         # Get filename to download from url link
