@@ -52,6 +52,9 @@ def isFileNameInList(list_of_webms, file_name_to_compare):
 @bot.event
 async def on_message(message):
 
+    # get the default channel
+    default_channel = message.guild.text_channels[0]
+
     # message content
     content = message.content
 
@@ -63,7 +66,8 @@ async def on_message(message):
 
     # check if message is a 4chan webm link
     # TODO: check for other valid urls (ie 4cdn.org, 4chan.org, etc.)
-    if ( message is not None) and (("https://i.4cdn.org" in message.content) or ("https://is2.4chan.org" in message.content)) and (".webm" in message.content):
+    # TODO: only checks default channel for now, add ability to add more channels
+    if ( message is not None) and (("https://i.4cdn.org" in message.content) or ("https://is2.4chan.org" in message.content)) and (".webm" in message.content) and (message.channel == default_channel):
         # Create url link
         # TODO: This won't work if a 4chan link is posted with no space
         # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
