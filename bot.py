@@ -63,7 +63,6 @@ async def on_message(message):
 
     # check if message is a 4chan webm link
     # TODO: check for other valid urls (ie 4cdn.org, 4chan.org, etc.)
-    # TODO: only checks default channel for now, add ability to add more channels
     if ( message is not None) and (("https://i.4cdn.org" in message.content) or ("https://is2.4chan.org" in message.content)) and (".webm" in message.content):
         # Create url link
         # TODO: This won't work if a 4chan link is posted with no space
