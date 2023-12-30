@@ -4,6 +4,7 @@ import discord
 import datetime
 import re
 import urllib.request
+import asyncio
 
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -49,8 +50,45 @@ def isFileNameInList(list_of_webms, file_name_to_compare):
     return found_file_name
 
 
+def is_connected(ctx):
+    """Returns True if bot is already connected to VC"""
+    return discord.utils.get(bot.voice_clients, guild=ctx.guild)
+
+
+@bot.command()
+async def hug(ctx):
+    """
+    Bot will join the VC that the user who ran the command is currently in
+    and play an audio clip ripped from the original shiver me timbers video
+    """
+
+    # get list of voice channels in the server the message was posted in
+    list_of_voice_channels_in_server = ctx.guild.voice_channels
+
+    # iterate over voice channels
+    for voice_channel in list_of_voice_channels_in_server:
+
+        # iterate over members in current voice channel
+        for member in voice_channel.members:
+
+            # check if the author of the message is in the currrent voice channell
+            if ctx.author.id == member.id:
+
+                # if they are, have the bot join the VC and play the hug audio
+                # if not already connected to VC
+                if not is_connected(ctx):
+                    vc = await voice_channel.connect()
+                    vc.play(discord.FFmpegPCMAudio(source="audio/1hugaday.mp3"))
+                    while vc.is_playing():
+                        await asyncio.sleep(1)
+                    await vc.disconnect()
+
+
 @bot.event
 async def on_message(message):
+
+    # required to process commmands when overriding on_message function
+    await bot.process_commands(message)
 
     # message content
     content = message.content
