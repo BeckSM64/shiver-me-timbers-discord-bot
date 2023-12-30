@@ -30,6 +30,7 @@ def doesTextChannelExist(guild):
             break
     return found_text_channel
 
+
 def isFileNameInList(list_of_webms, file_name_to_compare):
 
     # Return false if the list is empty
@@ -53,6 +54,21 @@ def is_connected(ctx):
 
 @bot.command()
 async def hug(ctx):
+    """Calls the playAudio() function with the 1hugaday audio"""
+
+    file_path = "audio/1hugaday.mp3"
+    await playAudio(ctx, file_path)
+
+
+@bot.command()
+async def shiver(ctx):
+    """Calls the playAudio() function with the shivermetimbers audio"""
+
+    file_path = "audio/shivermetimbers.mp3"
+    await playAudio(ctx, file_path)
+
+
+async def playAudio(ctx, file_path):
     """
     Bot will join the VC that the user who ran the command is currently in
     and play an audio clip ripped from the original shiver me timbers video
@@ -67,14 +83,17 @@ async def hug(ctx):
         # iterate over members in current voice channel
         for member in voice_channel.members:
 
-            # check if the author of the message is in the currrent voice channell
+            # check if the author of the message is in the currrent voice channel
             if ctx.author.id == member.id:
 
                 # if they are, have the bot join the VC and play the hug audio
                 # if not already connected to VC
                 if not is_connected(ctx):
                     vc = await voice_channel.connect()
-                    vc.play(discord.FFmpegPCMAudio(source="audio/1hugaday.mp3"))
+                    vc.play(discord.FFmpegPCMAudio(source=file_path))
+                    vc.pause()
+                    await asyncio.sleep(1)
+                    vc.resume()
                     while vc.is_playing():
                         await asyncio.sleep(1)
                     await vc.disconnect()
