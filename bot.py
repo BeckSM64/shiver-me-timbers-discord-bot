@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 import os
 import discord
-import datetime
-import re
 import urllib.request
 import asyncio
 
 from os.path import join, dirname
 from dotenv import load_dotenv
 from discord.ext import commands
-from discord.ext import tasks
-from discord import Member
 
 # Read in .env for discord token
 dotenv_path = join(dirname(__file__), '.env')
@@ -89,15 +85,6 @@ async def on_message(message):
 
     # required to process commmands when overriding on_message function
     await bot.process_commands(message)
-
-    # message content
-    content = message.content
-
-    # message author
-    user = message.author
-
-    # text channel message originated on
-    channel = message.channel
 
     # check if message is a 4chan webm link
     # TODO: check for other valid urls (ie 4cdn.org, 4chan.org, etc.)
