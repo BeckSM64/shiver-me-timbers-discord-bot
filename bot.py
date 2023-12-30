@@ -83,7 +83,7 @@ async def playAudio(ctx, file_path):
         # iterate over members in current voice channel
         for member in voice_channel.members:
 
-            # check if the author of the message is in the currrent voice channell
+            # check if the author of the message is in the currrent voice channel
             if ctx.author.id == member.id:
 
                 # if they are, have the bot join the VC and play the hug audio
