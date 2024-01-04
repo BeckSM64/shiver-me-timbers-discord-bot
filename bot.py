@@ -99,6 +99,40 @@ async def playAudio(ctx, file_path):
                     await vc.disconnect()
 
 
+def isMessageA4ChanWebm(message):
+    """Returns True if message contains a link to a 4chan webm"""
+    return ( message is not None) and (("https://i.4cdn.org" in message.content) or ("https://is2.4chan.org" in message.content)) and (".webm" in message.content)
+
+
+def getUrlFromMessage(message):
+    """Splits the message and returns the URL"""
+
+    # TODO: This won't work if a 4chan link is posted with no space
+    # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
+    message_content_array = message.content.split()
+    for split_message in message_content_array:
+        if ("https://i.4cdn.org" in split_message) or ("https://is2.4chan.org" in split_message):
+            url_link = split_message
+
+    return url_link
+
+
+async def createWebmArchiveChannel(message):
+    """Creates a webm archive channel if one doesn't already exist"""
+
+    # Check to see if webm-archive text channel exists
+    found_text_channel = doesTextChannelExist(message.guild)
+
+    if found_text_channel is False:
+        await message.guild.create_text_channel("webm-archive")
+
+
+def getTextChannelByName(message, text_channel_name):
+    """return text channel that matches name that was passed in"""
+    text_channel = discord.utils.get(message.guild.text_channels, name=text_channel_name)
+    return text_channel
+
+
 @bot.event
 async def on_message(message):
 
@@ -106,19 +140,13 @@ async def on_message(message):
     await bot.process_commands(message)
 
     # check if message is a 4chan webm link
-    # TODO: check for other valid urls (ie 4cdn.org, 4chan.org, etc.)
-    if ( message is not None) and (("https://i.4cdn.org" in message.content) or ("https://is2.4chan.org" in message.content)) and (".webm" in message.content):
+    if isMessageA4ChanWebm(message):
+
         # Create url link
-        # TODO: This won't work if a 4chan link is posted with no space
-        # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
-        # Could fix this in the future but I don't really care
-        message_content_array = message.content.split()
-        for split_message in message_content_array:
-            if ("https://i.4cdn.org" in split_message) or ("https://is2.4chan.org" in split_message):
-                url_link = split_message
+        url_link = getUrlFromMessage(message)
 
         # Get filename to download from url link
-        file_name = message.content.split('/')[-1]
+        file_name = url_link.split('/')[-1]
 
         # List of webms that have already been archived
         list_of_webms = guild_id_to_lists_of_webms_dict.get(message.guild.id)
@@ -126,15 +154,11 @@ async def on_message(message):
         # Check if newly posted webm was previously archived
         if isFileNameInList(list_of_webms, file_name) is False:
 
-            # Check to see if webm-archive text channel exists
-            # and if not, create it
-            found_text_channel = doesTextChannelExist(message.guild)
-
-            if found_text_channel is False:
-                await message.guild.create_text_channel("webm-archive")
+            # Create webm archive channel for server if it doesn't already exist
+            await createWebmArchiveChannel(message)
 
             # Get archive channel
-            webm_archive_channel = discord.utils.get(message.guild.text_channels, name="webm-archive")
+            webm_archive_channel = getTextChannelByName(message, "webm-archive")
 
             # Download webm from url
             urllib.request.urlretrieve(url_link, file_name)
