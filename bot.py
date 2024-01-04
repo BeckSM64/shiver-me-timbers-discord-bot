@@ -53,26 +53,40 @@ def is_connected(ctx):
 
 
 @bot.command()
-async def hug(ctx):
+async def hug(ctx, arg=None):
     """Calls the playAudio() function with the 1hugaday audio"""
 
     file_path = "audio/1hugaday.mp3"
-    await playAudio(ctx, file_path)
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
 
 
 @bot.command()
-async def shiver(ctx):
+async def shiver(ctx, arg=None):
     """Calls the playAudio() function with the shivermetimbers audio"""
 
     file_path = "audio/shivermetimbers.mp3"
-    await playAudio(ctx, file_path)
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
 
 
-async def playAudio(ctx, file_path):
+async def playAudio(ctx, file_path, user_name):
     """
-    Bot will join the VC that the user who ran the command is currently in
-    and play an audio clip ripped from the original shiver me timbers video
+    Bot will join the VC and play an audio clip
+    ripped from the original shiver me timbers video
     """
+
+    # determine which user the bot should find in the voice channels
+    if user_name is None:
+        member_to_look_for = ctx.author.id # if no @ was provided to the command
+    else:
+        try:
+            # strip special characters out of the member id
+            member_to_look_for = int(user_name.replace('@', '').replace('<', '').replace('>', ''))
+        except:
+            # send an error message to the text channel for invalid input to the commands
+            await ctx.send("Please @ a valid member of the server")
+            return
 
     # get list of voice channels in the server the message was posted in
     list_of_voice_channels_in_server = ctx.guild.voice_channels
@@ -84,7 +98,7 @@ async def playAudio(ctx, file_path):
         for member in voice_channel.members:
 
             # check if the author of the message is in the currrent voice channel
-            if ctx.author.id == member.id:
+            if member_to_look_for == member.id:
 
                 # if they are, have the bot join the VC and play the hug audio
                 # if not already connected to VC
