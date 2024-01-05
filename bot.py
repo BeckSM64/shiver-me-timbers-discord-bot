@@ -52,30 +52,8 @@ def is_connected(ctx):
     return discord.utils.get(bot.voice_clients, guild=ctx.guild)
 
 
-@bot.command()
-async def hug(ctx, arg=None):
-    """Calls the playAudio() function with the 1hugaday audio"""
-
-    file_path = "audio/1hugaday.mp3"
-    user_name = arg
-    await playAudio(ctx, file_path, user_name)
-
-
-@bot.command()
-async def shiver(ctx, arg=None):
-    """Calls the playAudio() function with the shivermetimbers audio"""
-
-    file_path = "audio/shivermetimbers.mp3"
-    user_name = arg
-    await playAudio(ctx, file_path, user_name)
-
-
-async def playAudio(ctx, file_path, user_name):
-    """
-    Bot will join the VC and play an audio clip
-    ripped from the original shiver me timbers video
-    """
-
+#TODO: rename this. it does more than simply convert.
+async def username_to_id(ctx, user_name):
     # determine which user the bot should find in the voice channels
     if user_name is None:
         member_to_look_for = ctx.author.id # if no @ was provided to the command
@@ -87,6 +65,52 @@ async def playAudio(ctx, file_path, user_name):
             # send an error message to the text channel for invalid input to the commands
             await ctx.send("Please @ a valid member of the server")
             return
+
+    return member_to_look_for
+
+
+
+@bot.command()
+async def love(ctx, arg=None):
+    """ plays an audio file associated with a user's id  """
+    
+    user_name = arg
+    user_id = await username_to_id(ctx, user_name)
+    file_path = "audio/" + str(user_id)  + ".mp3"
+    print(file_path)
+    await playAudio(ctx, file_path, user_id)
+
+
+@bot.command()
+async def hug(ctx, arg=None):
+    """Calls the playAudio() function with the 1hugaday audio"""
+
+    file_path = "audio/1hugaday.mp3"
+    user_name = arg
+    user_id = await username_to_id(ctx, user_name)
+    await playAudio(ctx, file_path, user_id)
+
+
+@bot.command()
+async def shiver(ctx, arg=None):
+    """Calls the playAudio() function with the shivermetimbers audio"""
+
+    file_path = "audio/shivermetimbers.mp3"
+    user_name = arg
+    user_id = await username_to_id(ctx, user_name)
+    await playAudio(ctx, file_path, user_id)
+
+
+async def playAudio(ctx, file_path, member_to_look_for):
+    """
+    Bot will join the VC and play an audio clip
+    ripped from the original shiver me timbers video
+    """
+
+    # check if file exists
+    if not os.path.isfile(file_path):
+        return
+        
 
     # get list of voice channels in the server the message was posted in
     list_of_voice_channels_in_server = ctx.guild.voice_channels
