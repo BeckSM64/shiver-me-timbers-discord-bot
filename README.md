@@ -28,6 +28,10 @@ You can view the bot's profile for additional information about roles and permis
 |----------	|------------------------------------------------------------------|
 | !hug     	| Bot will join the VC and play the "one hug a day" audio clip     |
 | !shiver   | Bot will join the VC and play the "shiver me timbers" audio clip |
+| !badoing  | Bot will join the VC and play the "badoing" audio clip           |
+| !horn     | Bot will join the VC and play the "horn" audio clip              |
+| !nullptr  | Bot will join the VC and play the "nullptr" audio clip           |
+| !popcoin  | Bot will join the VC and play the "popcoin" audio clip           |
 
 ## Name
 The name "Shiver Me Timbers" comes from a video created by Varli Singh. I can't find the original video on her platform, but here's a link to a post on [Reddit](https://www.reddit.com/r/TikTokCringe/comments/nby4fb/humpty_dumpty/) showing the video. It's super strange and was the main motivation to make this bot after stumbling upon it on a 4chan thread.
