@@ -53,6 +53,14 @@ def is_connected(ctx):
 
 
 @bot.command()
+async def horn(ctx, arg=None):
+    """Calls the playAudio() function with the horn.mp3 audio"""
+
+    file_path = "audio/horn.mp3"
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
+    
+@bot.command()
 async def badoing(ctx, arg=None):
     """Calls the playAudio() function with the BLS_badoing.mp3 audio"""
 
