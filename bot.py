@@ -51,13 +51,6 @@ def is_connected(ctx):
     """Returns True if bot is already connected to VC"""
     return discord.utils.get(bot.voice_clients, guild=ctx.guild)
     
-@bot.command()
-async def divine(ctx, arg=None):
-    """Calls the playAudio() function with the divine.mp3 audio"""
-
-    file_path = "audio/divine.mp3"
-    user_name = arg
-    await playAudio(ctx, file_path, user_name)
 
 @bot.command()
 async def popcoin(ctx, arg=None):
