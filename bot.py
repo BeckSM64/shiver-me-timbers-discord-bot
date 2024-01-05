@@ -94,26 +94,6 @@ async def love(ctx, arg=None):
     await playAudio(ctx, file_path, ctx.author.id)
 
 
-@bot.command()
-async def hug(ctx, arg=None):
-    """Calls the playAudio() function with the 1hugaday audio"""
-
-    file_path = "audio/1hugaday.mp3"
-    user_name = arg
-    user_id = await username_to_id(ctx, user_name)
-    await playAudio(ctx, file_path, user_id)
-
-
-@bot.command()
-async def shiver(ctx, arg=None):
-    """Calls the playAudio() function with the shivermetimbers audio"""
-
-    file_path = "audio/shivermetimbers.mp3"
-    user_name = arg
-    user_id = await username_to_id(ctx, user_name)
-    await playAudio(ctx, file_path, user_id)
-
-
 async def playAudio(ctx, file_path, member_to_look_for):
     """
     Bot will join the VC and play an audio clip
