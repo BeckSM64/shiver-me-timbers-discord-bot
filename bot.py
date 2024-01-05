@@ -59,7 +59,8 @@ async def popcoin(ctx, arg=None):
     file_path = "audio/popcoin.mp3"
     user_name = arg
     await playAudio(ctx, file_path, user_name)
-    
+
+
 @bot.command()
 async def nulptr(ctx, arg=None):
     """Calls the playAudio() function with the nulptr.mp3 audio"""
@@ -67,7 +68,8 @@ async def nulptr(ctx, arg=None):
     file_path = "audio/nulptr.mp3"
     user_name = arg
     await playAudio(ctx, file_path, user_name)
-    
+
+
 @bot.command()
 async def horn(ctx, arg=None):
     """Calls the playAudio() function with the horn.mp3 audio"""
@@ -75,7 +77,8 @@ async def horn(ctx, arg=None):
     file_path = "audio/horn.mp3"
     user_name = arg
     await playAudio(ctx, file_path, user_name)
-    
+
+
 @bot.command()
 async def badoing(ctx, arg=None):
     """Calls the playAudio() function with the BLS_badoing.mp3 audio"""
@@ -83,7 +86,8 @@ async def badoing(ctx, arg=None):
     file_path = "audio/BLS_badoing.mp3"
     user_name = arg
     await playAudio(ctx, file_path, user_name)
-    
+
+
 @bot.command()
 async def hug(ctx, arg=None):
     """Calls the playAudio() function with the 1hugaday audio"""
