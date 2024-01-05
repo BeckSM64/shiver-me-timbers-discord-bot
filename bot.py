@@ -69,9 +69,9 @@ async def popcoin(ctx, arg=None):
     
 @bot.command()
 async def nulptr(ctx, arg=None):
-    """Calls the playAudio() function with the nul_ptr.mp3 audio"""
+    """Calls the playAudio() function with the nulptr.mp3 audio"""
 
-    file_path = "audio/nul_ptr.mp3"
+    file_path = "audio/nulptr.mp3"
     user_name = arg
     await playAudio(ctx, file_path, user_name)
     
