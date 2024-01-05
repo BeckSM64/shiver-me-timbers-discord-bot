@@ -57,6 +57,11 @@ async def influence(ctx, arg=None):
         if filename.endswith(".mp3"): # Checks if it is a .mp3 file
             await ctx.message.attachments[0].save(fp="audio/users/{}".format(str(user_id) + ".mp3")) # saves the file
 
+            if not os.path.exists("audio/users/{}".format(str(user_id))):
+                os.mkdir("audio/users/{}".format(str(user_id)));
+
+            await ctx.message.attachments[0].save(fp="audio/users/{}".format(str(user_id) + "/" + filename)) # saves the file
+
 
 @bot.command()
 async def love(ctx, arg=None):
