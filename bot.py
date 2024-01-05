@@ -51,7 +51,14 @@ def is_connected(ctx):
     """Returns True if bot is already connected to VC"""
     return discord.utils.get(bot.voice_clients, guild=ctx.guild)
 
+@bot.command()
+async def nulptr(ctx, arg=None):
+    """Calls the playAudio() function with the nul_ptr.mp3 audio"""
 
+    file_path = "audio/nul_ptr.mp3"
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
+    
 @bot.command()
 async def horn(ctx, arg=None):
     """Calls the playAudio() function with the horn.mp3 audio"""
