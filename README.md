@@ -36,6 +36,24 @@ You can view the bot's profile for additional information about roles and permis
 ## Name
 The name "Shiver Me Timbers" comes from a video created by Varli Singh. I can't find the original video on her platform, but here's a link to a post on [Reddit](https://www.reddit.com/r/TikTokCringe/comments/nby4fb/humpty_dumpty/) showing the video. It's super strange and was the main motivation to make this bot after stumbling upon it on a 4chan thread.
 
+## Setup
+Shiver Me Timbers bot requires Python v3.8 or newer.
+
+Install python dependencies:
+```
+pip3 install -r requirements.txt
+```
+
+Create an .env file1 with your bot's token
+```
+DISCORD_TOKEN=JELRIP35NTg5MzM1NjE2MzE5Mw.GZCp1v.N2kE986XTnDx1QrojeRtpyM2CYFbHK3Lk84ON3
+```
+
+Run:
+```
+python3 bot.py
+```
+
 ## Contact
 If you have any questions, contact me directly
 
