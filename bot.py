@@ -52,6 +52,14 @@ def is_connected(ctx):
     return discord.utils.get(bot.voice_clients, guild=ctx.guild)
 
 @bot.command()
+async def popcoin(ctx, arg=None):
+    """Calls the playAudio() function with the popcoin.mp3 audio"""
+
+    file_path = "audio/popcoin.mp3"
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
+    
+@bot.command()
 async def nulptr(ctx, arg=None):
     """Calls the playAudio() function with the nul_ptr.mp3 audio"""
 
