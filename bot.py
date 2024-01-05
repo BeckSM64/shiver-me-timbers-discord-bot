@@ -68,6 +68,20 @@ async def username_to_id(ctx, user_name):
 
     return member_to_look_for
 
+@bot.command()
+async def influence(ctx, arg=None):
+    """ saves a user's mp3 file, named as their user_id """
+    
+    user_name = arg
+    user_id = await username_to_id(ctx, user_name)
+
+    if str(ctx.message.attachments) == "[]": # Checks if there is an attachment on the message
+        return
+    else: # If there is it gets the filename from message.attachments
+        split_v1 = str(ctx.message.attachments).split("filename='")[1]
+        filename = str(split_v1).split("' ")[0]
+        if filename.endswith(".mp3"): # Checks if it is a .mp3 file
+            await ctx.message.attachments[0].save(fp="audio/users/{}".format(str(user_id) + ".mp3")) # saves the file
 
 
 @bot.command()
@@ -76,9 +90,8 @@ async def love(ctx, arg=None):
     
     user_name = arg
     user_id = await username_to_id(ctx, user_name)
-    file_path = "audio/" + str(user_id)  + ".mp3"
-    print(file_path)
-    await playAudio(ctx, file_path, user_id)
+    file_path = "audio/users/" + str(user_id)  + ".mp3"
+    await playAudio(ctx, file_path, ctx.author.id)
 
 
 @bot.command()

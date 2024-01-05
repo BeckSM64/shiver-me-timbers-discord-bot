@@ -1,2 +1,4 @@
 .env
 *.webm
+
+audio/users/*.mp3
