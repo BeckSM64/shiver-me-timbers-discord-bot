@@ -50,6 +50,42 @@ def isFileNameInList(list_of_webms, file_name_to_compare):
 def is_connected(ctx):
     """Returns True if bot is already connected to VC"""
     return discord.utils.get(bot.voice_clients, guild=ctx.guild)
+    
+
+@bot.command()
+async def popcoin(ctx, arg=None):
+    """Calls the playAudio() function with the popcoin.mp3 audio"""
+
+    file_path = "audio/popcoin.mp3"
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
+
+
+@bot.command()
+async def nullptr(ctx, arg=None):
+    """Calls the playAudio() function with the nulptr.mp3 audio"""
+
+    file_path = "audio/nulptr.mp3"
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
+
+
+@bot.command()
+async def horn(ctx, arg=None):
+    """Calls the playAudio() function with the horn.mp3 audio"""
+
+    file_path = "audio/horn.mp3"
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
+
+
+@bot.command()
+async def badoing(ctx, arg=None):
+    """Calls the playAudio() function with the BLS_badoing.mp3 audio"""
+
+    file_path = "audio/BLS_badoing.mp3"
+    user_name = arg
+    await playAudio(ctx, file_path, user_name)
 
 
 @bot.command()
