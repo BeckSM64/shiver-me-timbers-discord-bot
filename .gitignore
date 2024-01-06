@@ -2,3 +2,4 @@
 *.webm
 
 audio/users/*.mp3
+audio/users/*/
