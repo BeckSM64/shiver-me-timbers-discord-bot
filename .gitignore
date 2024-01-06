@@ -1,5 +1,8 @@
 .env
 *.webm
 
+audio/*.mp3
 audio/users/*.mp3
 audio/users/*/
+
+.python-version
