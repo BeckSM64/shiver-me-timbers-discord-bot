@@ -23,8 +23,14 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # Dictionary to track user's cooldown times from previously played intro
 user_cooldown_times_dict = {}
 
+# constants
+AUDIO_DIR = "audio/"
+USERS_DIR = "users/"
+USER_AUDIO_DIR = AUDIO_DIR + USERS_DIR
+
 log = logging.getLogger()
 log.setLevel(logging.INFO)
+
 
 def is_connected(ctx):
     """Returns True if bot is already connected to VC"""
@@ -80,19 +86,32 @@ async def influence(ctx, arg=None):
 
     if str(ctx.message.attachments) == "[]": # Checks if there is an attachment on the message
         return
-    else: # If there is it gets the filename from message.attachments
+    else: # If there is an attachment, get the filename from message.attachments
         split_v1 = str(ctx.message.attachments).split("filename='")[1]
         filename = str(split_v1).split("' ")[0]
-        if filename.endswith(".mp3"): # Checks if it is a .mp3 file
-            await ctx.message.attachments[0].save(fp="audio/users/{}".format(str(user_id) + ".mp3")) # saves the file
+        if filename.endswith(".mp3"):
+            #   save the file in a user's directory,
+            # and then symlink to it using the user's id
+            user_new_file_path = str(user_id) + "/" + filename
+            user_new_symlink = USER_AUDIO_DIR + str(user_id) + ".mp3"
+            if not os.path.exists(USER_AUDIO_DIR + str(user_id)):
+                os.mkdir(USER_AUDIO_DIR + str(user_id));
+            await ctx.message.attachments[0].save(fp=USER_AUDIO_DIR + user_new_file_path)
+   
+            #    create the symlink to the new file
+            # (create a temp symlink, and rename to allow overwriting existing files)
+            os.symlink(user_new_file_path, user_new_symlink + ".tmp")
+            os.rename(user_new_symlink + ".tmp", user_new_symlink)
 
-            if not os.path.exists("audio/users/{}".format(str(user_id))):
-                os.mkdir("audio/users/{}".format(str(user_id)));
-
-            await ctx.message.attachments[0].save(fp="audio/users/{}".format(str(user_id) + "/" + filename)) # saves the file
 
 def getUserMp3(user_id):
-    return "audio/users/" + str(user_id)  + ".mp3"
+    """ finds the user's custom mp3, or the default mp3 """
+
+    file_path = AUDIO_DIR + "default.mp3"
+    user_file_path = USER_AUDIO_DIR + str(user_id) + ".mp3"
+    if os.path.isfile(user_file_path):
+        file_path = user_file_path 
+    return file_path
 
 @bot.command()
 async def love(ctx, arg=None):
