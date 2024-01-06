@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import os
+import logging
+import datetime
+import time
 import discord
 import urllib.request
 import asyncio
@@ -17,13 +20,39 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Dictionary of guild ids to list of previously downloaded webms
-guild_id_to_lists_of_webms_dict = {}
+# Dictionary to track user's cooldown times from previously played intro
+user_cooldown_times_dict = {}
 
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
 def is_connected(ctx):
     """Returns True if bot is already connected to VC"""
     return discord.utils.get(bot.voice_clients, guild=ctx.guild)
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    """Plays a user's soundclip when joining a voice channel. 10 hour cooldown"""
+    global user_cooldown_times_dict
+
+    # ensure member is entering (not exiting), and is not the bot
+    if not before.channel and after.channel and member.id is not bot.user.id:
+        logging.info('{} is what it do'.format(member.name))
+
+        # check that enough cooldown time has elapsed before replaying intro sound
+        prev_time = user_cooldown_times_dict.get(member.id)
+        cooldown_time = datetime.timedelta(hours=10)
+
+        # proceed if this is the first time the member's entered, or if cooldown has expired
+        if not prev_time or datetime.datetime.now() > (prev_time + cooldown_time):
+            user_cooldown_times_dict[member.id] = datetime.datetime.now()
+            logging.info('{} has joined the vc'.format(member.nick))
+            file_path = getUserMp3(member.id)
+            await playAudio(file_path, after.channel)
+        else:
+            delta_time = prev_time + cooldown_time - datetime.datetime.now()
+            logging.info('{} intro will not play for another {} hours and {} minutes'.format(member.nick, delta_time.seconds//3600, (delta_time.seconds//60)%60))
+
 
 
 #TODO: rename this. it does more than simply convert.
@@ -62,6 +91,8 @@ async def influence(ctx, arg=None):
 
             await ctx.message.attachments[0].save(fp="audio/users/{}".format(str(user_id) + "/" + filename)) # saves the file
 
+def getUserMp3(user_id):
+    return "audio/users/" + str(user_id)  + ".mp3"
 
 @bot.command()
 async def love(ctx, arg=None):
@@ -69,11 +100,22 @@ async def love(ctx, arg=None):
     
     user_name = arg
     user_id = await username_to_id(ctx, user_name)
-    file_path = "audio/users/" + str(user_id)  + ".mp3"
-    await playAudio(ctx, file_path, ctx.author.id)
+    file_path = getUserMp3(user_id)
+    await spoolAudio(ctx, file_path, ctx.author.id)
+
+async def playAudio(file_path, voice_channel):
+    logging.info("playing: " + file_path)
+    vc = await voice_channel.connect()
+    vc.play(discord.FFmpegPCMAudio(source=file_path))
+    vc.pause()
+    await asyncio.sleep(1)
+    vc.resume()
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    await vc.disconnect()
 
 
-async def playAudio(ctx, file_path, member_to_look_for):
+async def spoolAudio(ctx, file_path, member_to_look_for):
     """
     Bot will join the VC and play an audio clip
     ripped from the original shiver me timbers video
@@ -99,14 +141,7 @@ async def playAudio(ctx, file_path, member_to_look_for):
                 # if they are, have the bot join the VC and play the hug audio
                 # if not already connected to VC
                 if not is_connected(ctx):
-                    vc = await voice_channel.connect()
-                    vc.play(discord.FFmpegPCMAudio(source=file_path))
-                    vc.pause()
-                    await asyncio.sleep(1)
-                    vc.resume()
-                    while vc.is_playing():
-                        await asyncio.sleep(1)
-                    await vc.disconnect()
-
+                    print("shouldnt be running this right now")
+                    await playAudio(file_path, voice_channel)
 
 bot.run(TOKEN)
