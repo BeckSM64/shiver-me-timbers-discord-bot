@@ -42,7 +42,7 @@ async def on_voice_state_update(member, before, after):
     global user_cooldown_times_dict
 
     # ensure member is entering (not exiting), and is not the bot
-    if not before.channel and after.channel and member.id is not bot.user.id:
+    if not before.channel and after.channel and member.id is not bot.user.id and not member.bot:
         logging.info('{} is what it do'.format(member.name))
 
         # check that enough cooldown time has elapsed before replaying intro sound
