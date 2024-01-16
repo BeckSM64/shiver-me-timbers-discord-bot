@@ -79,7 +79,7 @@ async def username_to_id(ctx, user_name):
 
 @bot.command()
 async def influence(ctx, arg=None):
-    """ saves a user's mp3 file, named as their user_id """
+    """ Attach an mp3 and use the !influence command to register audio. """
     
     user_name = arg
     user_id = await username_to_id(ctx, user_name)
