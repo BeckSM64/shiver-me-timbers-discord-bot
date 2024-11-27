@@ -150,8 +150,15 @@ async def playAudio(ctx, file_path, user_name):
 
 
 def isMessageA4ChanWebm(message):
-    """Returns True if message contains a link to a 4chan webm"""
-    return ( message is not None) and (("https://i.4cdn.org" in message.content) or ("https://is2.4chan.org" in message.content)) and (".webm" in message.content)
+    """Returns True if message contains a link to a 4chan webm or mp4"""
+    return (
+        (message is not None)
+        and (
+            ("https://i.4cdn.org" in message.content)
+            or ("https://is2.4chan.org" in message.content)
+        )
+        and (".webm" in message.content or ".mp4" in message.content)
+    )
 
 
 def getUrlFromMessage(message):
