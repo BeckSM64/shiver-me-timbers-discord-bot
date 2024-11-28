@@ -22,6 +22,15 @@ guild_id_to_lists_of_webms_dict = {}
 
 
 def does_text_channel_exist(guild):
+    """
+    Checks to see if a webm archive text channel already exists
+
+    Args:
+        guild: The ID of the server
+
+    Returns:
+        bool: Whether the webm archive text channel was found or not
+    """
 
     found_text_channel = False
     for temp_channel in guild.text_channels:
