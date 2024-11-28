@@ -21,7 +21,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 guild_id_to_lists_of_webms_dict = {}
 
 
-def doesTextChannelExist(guild):
+def does_text_channel_exist(guild):
 
     found_text_channel = False
     for temp_channel in guild.text_channels:
@@ -31,7 +31,18 @@ def doesTextChannelExist(guild):
     return found_text_channel
 
 
-def isFileNameInList(list_of_webms, file_name_to_compare):
+def is_file_name_in_list(list_of_webms, file_name_to_compare):
+    """
+    Checks to see if file name is in the list of videos that have already
+    been posted to this discord server
+
+    Args:
+        list_of_webms: List of webms that have already been posted
+        file_name_to_compare: Filename of video currently being posted
+
+    Returns:
+        bool: Whether or not video has been posted already in server
+    """
 
     # Return false if the list is empty
     if list_of_webms is None:
@@ -48,68 +59,131 @@ def isFileNameInList(list_of_webms, file_name_to_compare):
 
 
 def is_connected(ctx):
-    """Returns True if bot is already connected to VC"""
+    """
+    Returns True if bot is already connected to VC
+
+    Args:
+        ctx: Discord channel context
+
+    Returns:
+        bool: Whether or not bot is connected to the VC
+    """
     return discord.utils.get(bot.voice_clients, guild=ctx.guild)
     
 
 @bot.command()
 async def popcoin(ctx, arg=None):
-    """Calls the playAudio() function with the popcoin.mp3 audio"""
+    """
+    Calls the play_audio() function with the popcoin.mp3 audio
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
 
     file_path = "audio/popcoin.mp3"
     user_name = arg
-    await playAudio(ctx, file_path, user_name)
+    await play_audio(ctx, file_path, user_name)
 
 
 @bot.command()
 async def nullptr(ctx, arg=None):
-    """Calls the playAudio() function with the nulptr.mp3 audio"""
+    """
+    Calls the play_audio() function with the nulptr.mp3 audio
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
 
     file_path = "audio/nulptr.mp3"
     user_name = arg
-    await playAudio(ctx, file_path, user_name)
+    await play_audio(ctx, file_path, user_name)
 
 
 @bot.command()
 async def horn(ctx, arg=None):
-    """Calls the playAudio() function with the horn.mp3 audio"""
+    """
+    Calls the play_audio() function with the horn.mp3 audio
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
 
     file_path = "audio/horn.mp3"
     user_name = arg
-    await playAudio(ctx, file_path, user_name)
+    await play_audio(ctx, file_path, user_name)
 
 
 @bot.command()
 async def badoing(ctx, arg=None):
-    """Calls the playAudio() function with the BLS_badoing.mp3 audio"""
+    """
+    Calls the play_audio() function with the BLS_badoing.mp3 audio
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
 
     file_path = "audio/BLS_badoing.mp3"
     user_name = arg
-    await playAudio(ctx, file_path, user_name)
+    await play_audio(ctx, file_path, user_name)
 
 
 @bot.command()
 async def hug(ctx, arg=None):
-    """Calls the playAudio() function with the 1hugaday audio"""
+    """
+    Calls the play_audio() function with the 1hugaday audio
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
 
     file_path = "audio/1hugaday.mp3"
     user_name = arg
-    await playAudio(ctx, file_path, user_name)
+    await play_audio(ctx, file_path, user_name)
 
 
 @bot.command()
 async def shiver(ctx, arg=None):
-    """Calls the playAudio() function with the shivermetimbers audio"""
+    """
+    Calls the play_audio() function with the shivermetimbers audio
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
 
     file_path = "audio/shivermetimbers.mp3"
     user_name = arg
-    await playAudio(ctx, file_path, user_name)
+    await play_audio(ctx, file_path, user_name)
 
 
-async def playAudio(ctx, file_path, user_name):
+async def play_audio(ctx, file_path, user_name):
     """
     Bot will join the VC and play an audio clip
-    ripped from the original shiver me timbers video
+
+    Args:
+        ctx: Discord channel context
+        file_path: Path to the file
+        user_name: Username of user who ran the command
+
+    Returns:
+        None
     """
 
     # determine which user the bot should find in the voice channels
@@ -149,8 +223,16 @@ async def playAudio(ctx, file_path, user_name):
                     await vc.disconnect()
 
 
-def isMessageA4ChanWebm(message):
-    """Returns True if message contains a link to a 4chan webm or mp4"""
+def is_message_a_4chan_video_link(message):
+    """
+    Returns True if message contains a link to a 4chan webm or mp4
+
+    Args:
+        message: Latest Discord text channel message
+
+    Returns:
+        bool: Whether or not the message contains a 4chan video link
+    """
     return (
         (message is not None)
         and (
@@ -161,8 +243,16 @@ def isMessageA4ChanWebm(message):
     )
 
 
-def getUrlFromMessage(message):
-    """Splits the message and returns the URL"""
+def get_url_from_message(message):
+    """
+    Splits the message and returns the URL
+
+    Args:
+        message: Latest Discord text channel message
+
+    Returns:
+        str: The URL as a string
+    """
 
     # TODO: This won't work if a 4chan link is posted with no space
     # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
@@ -174,33 +264,59 @@ def getUrlFromMessage(message):
     return url_link
 
 
-async def createWebmArchiveChannel(message):
-    """Creates a webm archive channel if one doesn't already exist"""
+async def create_webm_archive_channel(message):
+    """
+    Creates a webm archive channel if one doesn't already exist
+
+    Args:
+        message: Latest Discord text channel message
+
+    Returns:
+        None
+    """
 
     # Check to see if webm-archive text channel exists
-    found_text_channel = doesTextChannelExist(message.guild)
+    found_text_channel = does_text_channel_exist(message.guild)
 
     if found_text_channel is False:
         await message.guild.create_text_channel("webm-archive")
 
 
-def getTextChannelByName(message, text_channel_name):
-    """return text channel that matches name that was passed in"""
+def get_text_channel_by_name(message, text_channel_name):
+    """
+    Gets the text channel by name
+
+    Args:
+        message: Discord text channel message
+        text_channel_name: Name of text channel
+
+    Returns:
+        TextChannel: Returns a text channel object corresponding to provided name
+    """
     text_channel = discord.utils.get(message.guild.text_channels, name=text_channel_name)
     return text_channel
 
 
 @bot.event
 async def on_message(message):
+    """
+    Discord API event driven method that runes when a message
+
+    Args:
+        message: Latest Discord text channel message
+
+    Returns:
+        None
+    """
 
     # required to process commmands when overriding on_message function
     await bot.process_commands(message)
 
     # check if message is a 4chan webm link
-    if isMessageA4ChanWebm(message):
+    if is_message_a_4chan_video_link(message):
 
         # Create url link
-        url_link = getUrlFromMessage(message)
+        url_link = get_url_from_message(message)
 
         # Get filename to download from url link
         file_name = url_link.split('/')[-1]
@@ -209,13 +325,13 @@ async def on_message(message):
         list_of_webms = guild_id_to_lists_of_webms_dict.get(message.guild.id)
 
         # Check if newly posted webm was previously archived
-        if isFileNameInList(list_of_webms, file_name) is False:
+        if is_file_name_in_list(list_of_webms, file_name) is False:
 
             # Create webm archive channel for server if it doesn't already exist
-            await createWebmArchiveChannel(message)
+            await create_webm_archive_channel(message)
 
             # Get archive channel
-            webm_archive_channel = getTextChannelByName(message, "webm-archive")
+            webm_archive_channel = get_text_channel_by_name(message, "webm-archive")
 
             # Download webm from url
             urllib.request.urlretrieve(url_link, file_name)
