@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import os
 import discord
-import urllib.request
+import requests
 import asyncio
+import cloudscraper
 
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -306,6 +307,59 @@ def get_text_channel_by_name(message, text_channel_name):
     return text_channel
 
 
+def download_video_via_cloudscraper(url_link) -> bool:
+    """
+    Handles the download attemp from 4chan using cloud scraper
+
+    Args:
+        url_link: Link to the 4chan webm/mp4
+
+    Returns:
+        bool: Result of the download attempt
+    """
+
+    result = False # Overwrite if we succeed
+
+    try:
+        # Create a CloudScraper instance with Cloudflare bypass capabilities
+        scraper = cloudscraper.create_scraper()
+
+        print(f"Attempting to download with cloudscraper from: {url_link}")
+
+        # Make the GET request. cloudscraper will try to solve any CAPTCHAs
+        response = scraper.get(url_link, stream=True)
+        response.raise_for_status() # This will raise an exception for 4xx/5xx responses
+
+        # Print cloudscraper http response
+        print(f"\n--- Cloudscraper Response Details ---")
+        print(f"Status Code: {response.status_code}")
+        print(f"Content-Type: {response.headers.get('Content-Type')}")
+
+        # Ensure the page being access is a video that can be downloaded
+        if 'video' in response.headers.get('Content-Type', ''):
+            filename = url_link.split('/')[-1].split('?')[0]
+            with open(filename, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            print(f"Video downloaded successfully as {filename}!")
+            result = True
+        else:
+            print(f"Cloudscraper got a {response.status_code} but Content-Type was not 'video'.")
+            print(f"Response content (first 500 chars): {response.text[:500]}")
+            print("\nCloudscraper might have failed to bypass, or the content is not a video.")
+
+    # Catch HTTP errors and other exceptions
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP Error: {e.response.status_code} - {e.response.reason}")
+        print(f"Response content (if available): {e.response.text[:500]}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+    print("\n--- Cloudscraper Attempt Complete ---")
+    return result
+
+
 @bot.event
 async def on_message(message):
     """
@@ -342,19 +396,21 @@ async def on_message(message):
             # Get archive channel
             webm_archive_channel = get_text_channel_by_name(message, "webm-archive")
 
-            # Download webm from url
-            urllib.request.urlretrieve(url_link, file_name)
+            # Attempt to download the video
+            result = download_video_via_cloudscraper(url_link)
 
-            # Keep track of the file that was downloaded to avoid duplicates
-            if guild_id_to_lists_of_webms_dict.get(message.guild.id) is None:
-                guild_id_to_lists_of_webms_dict[message.guild.id] = [file_name]
-            else:
-                guild_id_to_lists_of_webms_dict[message.guild.id].append(file_name)
+            # Only keep track of the file if it downloaded successfully
+            if result:
+                # Keep track of the file that was downloaded to avoid duplicates
+                if guild_id_to_lists_of_webms_dict.get(message.guild.id) is None:
+                    guild_id_to_lists_of_webms_dict[message.guild.id] = [file_name]
+                else:
+                    guild_id_to_lists_of_webms_dict[message.guild.id].append(file_name)
 
-            # Upload file to webm archive channel
-            await webm_archive_channel.send(file=discord.File('./' + file_name))
+                # Upload file to webm archive channel
+                await webm_archive_channel.send(file=discord.File('./' + file_name))
 
-            # Remove webm that was downloaded
-            os.remove(os.path.join("./", file_name))
+                # Remove webm that was downloaded
+                os.remove(os.path.join("./", file_name))
 
 bot.run(TOKEN)
