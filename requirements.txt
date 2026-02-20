@@ -3,3 +3,4 @@ discord.py
 discord.py[voice]
 cloudscraper
 requests
+yt_dlp

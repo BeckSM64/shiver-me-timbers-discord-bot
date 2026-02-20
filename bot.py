@@ -4,6 +4,7 @@ import discord
 import requests
 import asyncio
 import cloudscraper
+import yt_dlp
 
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -67,6 +68,36 @@ def is_file_name_in_list(list_of_webms, file_name_to_compare):
 
     return found_file_name
 
+def is_message_a_reddit_video_link(message):
+    """
+    Returns True if message contains a reddit or old.reddit url
+
+    Args:
+        message: Latest Discord text channel message
+
+    Returns:
+        bool: Whether or not the message contains a 4chan video link
+   
+    """
+    if (
+        message is not None and
+        (("https://old.reddit.com" in message.content)
+            or ("https://reddit.com" in message.content))
+       ):
+        print(message.content + " is a reddit.com url")
+        ydl_opts = {
+            "quiet": True,
+            "skip_download": True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            url = get_url_from_message(message)
+            info = ydl.extract_info(url, download=False)
+
+            if "entries" in info:
+                info = next(iter(info["entries"]), None)
+                if info is None:
+                    return False
+            return info.get("vcodec") not in (None, "none")
 
 def is_message_a_4chan_video_link(message):
     """
@@ -103,9 +134,14 @@ def get_url_from_message(message):
     # between previous text and the link (ie. laksdjflaksdjhttps://i.4cdn.org )
     message_content_array = message.content.split()
     for split_message in message_content_array:
-        if ("https://i.4cdn.org" in split_message) or ("https://is2.4chan.org" in split_message):
+        if (
+            ("https://i.4cdn.org" in split_message) or
+            ("https://is2.4chan.org" in split_message) or
+            ("https://old.reddit.com" in split_message) or
+            ("https://reddit.com" in split_message)
+            ):
             url_link = split_message
-
+    
     return url_link
 
 
@@ -247,5 +283,9 @@ async def on_message(message):
 
                 # Remove webm that was downloaded
                 os.remove(os.path.join("./", file_name))
+
+    if is_message_a_reddit_video_link(message):
+        print(message.content + " is a video from reddit")
+
 
 bot.run(TOKEN)
