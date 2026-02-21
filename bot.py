@@ -81,11 +81,9 @@ def is_message_a_reddit_video_link(message):
     """
     if (
         message is not None and
-        (("https://reddit.com" in message.content)
-            or ("https://www.reddit.com" in message.content)
-            or ("https://old.reddit.com" in message.content))
+        ("reddit" in message.content)
        ):
-        print(message.content + " is a reddit.com url")
+        print(message.content + " is a reddit url")
         ydl_opts = {
             "quiet": True,
             "skip_download": True,
@@ -139,11 +137,9 @@ def get_url_from_message(message):
     message_content_array = message.content.split()
     for split_message in message_content_array:
         if (
-            ("https://i.4cdn.org" in split_message) or
-            ("https://is2.4chan.org" in split_message) or
-            ("https://old.reddit.com" in split_message) or
-            ("https://www.reddit.com" in split_message) or
-            ("https://reddit.com" in split_message)
+            ("4cdn" in split_message) or
+            ("4chan" in split_message) or
+            ("reddit" in split_message)
             ):
             url_link = split_message
     
