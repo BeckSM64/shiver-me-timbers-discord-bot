@@ -374,7 +374,9 @@ async def on_message(message):
                     guild_id_to_lists_of_webms_dict[message.guild.id].append(url_psudo_name)
 
                 # Upload file to webm archive channel
+                # Also, Upload file to posted channel, since reddit does not embed videos
                 file_name = result[1]
+                await message.channel.send(file=discord.File('./' + file_name))
                 await webm_archive_channel.send(file=discord.File('./' + file_name))
 
                 # Remove webm that was downloaded
