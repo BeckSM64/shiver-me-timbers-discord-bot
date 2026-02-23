@@ -373,9 +373,15 @@ async def on_message(message):
                 else:
                     guild_id_to_lists_of_webms_dict[message.guild.id].append(url_psudo_name)
 
+                file_name = result[1]
+                file_size = os.path.getsize(file_name);
+                MAX_DISCORD_FILESIZE = 10485760 
+                if (file_size > MAX_DISCORD_FILESIZE):
+                    print(f"downloaded file too large: {file_size}")
+                    await message.channel.send(content=f"file {file_name} is {file_size} large, which may be too large. We'll try anyway.")
+
                 # Upload file to webm archive channel
                 # Also, Upload file to posted channel, since reddit does not embed videos
-                file_name = result[1]
                 await message.channel.send(file=discord.File('./' + file_name))
                 await webm_archive_channel.send(file=discord.File('./' + file_name))
 
