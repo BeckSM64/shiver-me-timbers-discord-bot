@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+import math
+import subprocess
 import discord
 import requests
 import asyncio
@@ -375,10 +377,39 @@ async def on_message(message):
 
                 file_name = result[1]
                 file_size = os.path.getsize(file_name);
-                MAX_DISCORD_FILESIZE = 10485760 
+
+                MAX_VIDEO_SIZE_MB = 10
+                MAX_VIDEO_SIZE_KB = MAX_VIDEO_SIZE_MB * 1024
+                MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_KB * 1024
+                MAX_VIDEO_SIZE_BITS = MAX_VIDEO_SIZE_BYTES * 8
+ 
+                MAX_DISCORD_FILESIZE = MAX_VIDEO_SIZE_BYTES
+
                 if (file_size > MAX_DISCORD_FILESIZE):
                     print(f"downloaded file too large: {file_size}")
-                    await message.channel.send(content=f"file {file_name} is {file_size} large, which may be too large. We'll try anyway.")
+                    await message.channel.send(content=f"file {file_name} is {file_size} large. Downsizing to {MAX_VIDEO_SIZE_MB}MB. This will take some time. TODO: is this isngle threaded? will this block other uploads? let's find out.")
+    
+                    duration_command = ["ffprobe", "-v", "error", "-show_entries",
+                                        "format=duration", "-of", "default=noprint_wrappers=1:nokey=1",
+                                        file_name]
+                    video_duration = int(math.ceil(float(subprocess.check_output(duration_command))))
+                    print(f"duration is: {video_duration} seconds")
+                    # BITS = 10 * 1024 * 1024 * 8
+                    target_bitrate = int(MAX_VIDEO_SIZE_BITS / video_duration)
+                    #TODO: this ignores audio bitrate. let's assume 128kb/s audio
+                    target_bitrate -= 128000
+    
+                    file_name_webm = f"{file_name}_{target_bitrate}kbps.webm"
+                    ffmpegcommand = ["ffmpeg", "-i", file_name,
+    #                                     "-vcodec", "libvpx",
+    #                                     "-acodec", "libvorbis",
+    #                                      "-crf", "51",
+                                          "-b:v", str(target_bitrate),
+                                          file_name_webm]
+                    #TODO: check return code
+                    subprocess.run(ffmpegcommand)
+                    await message.channel.send(content=f"file {file_name} has been converted to {target_bitrate}kbps as {file_name_webm}")
+                    file_name = file_name_webm 
 
                 # Upload file to webm archive channel
                 # Also, Upload file to posted channel, since reddit does not embed videos
