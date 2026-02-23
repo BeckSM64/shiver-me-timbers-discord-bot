@@ -394,21 +394,45 @@ async def on_message(message):
                                         file_name]
                     video_duration = int(math.ceil(float(subprocess.check_output(duration_command))))
                     print(f"duration is: {video_duration} seconds")
+
+                    #let's force 128kb/s audio
+                    target_audio_bitrate = 128000
+
                     # BITS = 10 * 1024 * 1024 * 8
-                    target_bitrate = int(MAX_VIDEO_SIZE_BITS / video_duration)
-                    #TODO: this ignores audio bitrate. let's assume 128kb/s audio
-                    target_bitrate -= 128000
+                    target_video_bitrate = int(MAX_VIDEO_SIZE_BITS / video_duration)
+                    target_video_bitrate -= target_audio_bitrate
     
-                    file_name_webm = f"{file_name}_{target_bitrate}kbps.webm"
-                    ffmpegcommand = ["ffmpeg", "-i", file_name,
-    #                                     "-vcodec", "libvpx",
-    #                                     "-acodec", "libvorbis",
-    #                                      "-crf", "51",
-                                          "-b:v", str(target_bitrate),
+                    file_name_webm = f"{file_name}_{target_video_bitrate}kbps.webm"
+                    ffmpegcommand_pass1 = ["ffmpeg", "-i", file_name,
+                                          "-b:v", str(target_video_bitrate),
+                                          "-b:a", str(target_audio_bitrate),
+                                          "-pass", "1",
+                                          "-f", "webm"]
+                    ffmpegcommand_pass2 = ["ffmpeg", "-i", file_name,
+                                          "-b:v", str(target_video_bitrate),
+                                          "-b:a", str(target_audio_bitrate),
+                                          "-pass", "2",
                                           file_name_webm]
+
+
+#                    ffmpegcommand = ["cp", "biden.webm", file_name_webm]
                     #TODO: check return code
-                    subprocess.run(ffmpegcommand)
-                    await message.channel.send(content=f"file {file_name} has been converted to {target_bitrate}kbps as {file_name_webm}")
+                    process = await asyncio.create_subprocess_exec(
+                        *ffmpegcommand_pass1,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    process = await asyncio.create_subprocess_exec(
+                        *ffmpegcommand_pass2,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    
+                    # Wait for the process to complete and get its stdout/stderr
+                    stdout, stderr = await process.communicate()
+                    
+                    #subprocess.run(ffmpegcommand)
+                    await message.channel.send(content=f"file {file_name} has been converted to {target_video_bitrate}kbps as {file_name_webm}")
                     file_name = file_name_webm 
 
                 # Upload file to webm archive channel
