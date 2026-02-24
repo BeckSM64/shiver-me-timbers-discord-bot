@@ -375,65 +375,82 @@ async def on_message(message):
                 else:
                     guild_id_to_lists_of_webms_dict[message.guild.id].append(url_psudo_name)
 
-                file_name = result[1]
-                file_size = os.path.getsize(file_name);
-
+                # Use these to calculate target bitrate
                 MAX_VIDEO_SIZE_MB = 10
                 MAX_VIDEO_SIZE_KB = MAX_VIDEO_SIZE_MB * 1024
                 MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_KB * 1024
                 MAX_VIDEO_SIZE_BITS = MAX_VIDEO_SIZE_BYTES * 8
  
+                MEGABYTES=1024*1024
                 MAX_DISCORD_FILESIZE = MAX_VIDEO_SIZE_BYTES
 
-                if (file_size > MAX_DISCORD_FILESIZE):
-                    print(f"downloaded file too large: {file_size}")
-                    await message.channel.send(content=f"file {file_name} is {file_size} large. Downsizing to {MAX_VIDEO_SIZE_MB}MB. This will take some time. TODO: is this isngle threaded? will this block other uploads? let's find out.")
-    
+                # this is the file that we are going to convert
+                file_name = result[1]
+                file_size_MB = os.path.getsize(file_name);
+
+                if (file_size_MB > MAX_DISCORD_FILESIZE):
+                    print(f"downloaded file {file_name} too large: {file_size_MB} bytes")
+                    await message.channel.send(content=f"Video too large: {int(file_size_MB/MEGABYTES)}MB. Downsizing to {MAX_VIDEO_SIZE_MB}MB. This will take some time.")
+                    # Find out the duration in seconds of the downloaded video
+                    # rounding up gives us some extra room to clear the 10MB target
+                    # TODO: error handling, return value
                     duration_command = ["ffprobe", "-v", "error", "-show_entries",
                                         "format=duration", "-of", "default=noprint_wrappers=1:nokey=1",
                                         file_name]
                     video_duration = int(math.ceil(float(subprocess.check_output(duration_command))))
-                    print(f"duration is: {video_duration} seconds")
 
-                    #let's force 128kb/s audio
+                    # let's force 128kb/s audio
                     target_audio_bitrate = 128000
 
-                    # BITS = 10 * 1024 * 1024 * 8
+                    # Calculate a bitrate that should set us slightly under the discord limit, leaving space for the audio
                     target_video_bitrate = int(MAX_VIDEO_SIZE_BITS / video_duration)
                     target_video_bitrate -= target_audio_bitrate
-    
-                    file_name_webm = f"{file_name}_{target_video_bitrate}kbps.webm"
+  
+                    #  Prepare the ffmpeg conversion commands.
+                    # this will be done using 2 passes. ffmpeg's first pass produces a metadata
+                    # file which provides a more optimal compression during the second pass.
+                    # The second pass produces the final video file
                     ffmpegcommand_pass1 = ["ffmpeg", "-i", file_name,
                                           "-b:v", str(target_video_bitrate),
                                           "-b:a", str(target_audio_bitrate),
                                           "-pass", "1",
                                           "-f", "webm"]
+
+                    file_name_webm = f"{file_name}_{target_video_bitrate}kbps.webm"
                     ffmpegcommand_pass2 = ["ffmpeg", "-i", file_name,
                                           "-b:v", str(target_video_bitrate),
                                           "-b:a", str(target_audio_bitrate),
                                           "-pass", "2",
                                           file_name_webm]
 
-
-#                    ffmpegcommand = ["cp", "biden.webm", file_name_webm]
-                    #TODO: check return code
+                    # Run both passes in async subprocesses. This prevents blocking new incoming requests
+                    #TODO: check return code. Error handling needed everywhere.
                     process = await asyncio.create_subprocess_exec(
                         *ffmpegcommand_pass1,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE
                     )
+                    # Wait for the process to complete and get its stdout/stderr
+                    stdout, stderr = await process.communicate()
+
+                    # run second pass
                     process = await asyncio.create_subprocess_exec(
                         *ffmpegcommand_pass2,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE
                     )
-                    
                     # Wait for the process to complete and get its stdout/stderr
                     stdout, stderr = await process.communicate()
-                    
-                    #subprocess.run(ffmpegcommand)
+                   
+                    # share the good news with the class.
                     await message.channel.send(content=f"file {file_name} has been converted to {target_video_bitrate}kbps as {file_name_webm}")
+                    
+                    # Remove original downloaded video 
+                    os.remove(os.path.join("./", file_name))
+
+                    # update with our file to be sent over
                     file_name = file_name_webm 
+
 
                 # Upload file to webm archive channel
                 # Also, Upload file to posted channel, since reddit does not embed videos
@@ -442,6 +459,5 @@ async def on_message(message):
 
                 # Remove webm that was downloaded
                 os.remove(os.path.join("./", file_name))
-
 
 bot.run(TOKEN)
